@@ -1,0 +1,48 @@
+Database
+- MySQL 8+ recommended. Adjust procedures/triggers syntax for other RDBMS.
+
+Included files
+- create_tables.sql — schema, constraints, indexes
+- sample_data.sql — sample records to get started
+- queries_examples.sql — example queries and a saved view
+- stored_procedures.sql — procedures to loan and return books
+- trigger_update_copies.sql — trigger to update available copies on insert
+
+How to run
+1. Install MySQL or use an online SQL sandbox.
+2. Run create_tables.sql to create the database and schema.
+3. Run sample_data.sql to populate initial data.
+4. Run stored_procedures.sql and trigger_update_copies.sql.
+5. Explore queries in queries_examples.sql and try the exercises below.
+
+Suggested milestones (for a 1–2 week learning plan)
+- Day 1: Understand the ER design and create tables.
+- Day 2: Insert sample data and write basic SELECT/WHERE queries.
+- Day 3: Practice JOINs and GROUP BY (reports).
+- Day 4: Implement and test stored procedures and transactions.
+- Day 5: Add triggers and a view, add indexes, optimize queries.
+- Day 6–7: Build a small UI or export reports and prepare a short README and demo.
+
+Exercises / features to implement
+- Add reservation table: members can reserve books when no copies available.
+- Implement fines calculation policy and monthly fine report.
+- Add authentication table for librarians (hash passwords).
+- Build a minimal web UI (Flask/Express/Node) to use stored procedures.
+- Create unit tests that verify procedures and triggers behave as expected.
+
+Assessment criteria (what to show a recruiter)
+- ER diagram and normalization reasoning.
+- SQL scripts (clean, commented).
+- Demonstration of transactional safety (loan/return).
+- Sample queries and reports (top books, active loans, overdue).
+- Optional: a short video/screenshots of running the app, or a tiny web frontend.
+
+Notes & tips
+- Always use transactions when changing multiple tables (loans + books).
+- Use foreign keys and constraints to keep data consistent.
+- Use parametrized queries in any app layer to avoid SQL injection.
+
+If you want:
+- I can convert these scripts to PostgreSQL.
+- I can generate an ER diagram image, step-by-step walkthrough to run locally, or a minimal Flask app that uses this DB.
+- I can create a one-page resume-ready project summary and sample demo script.
