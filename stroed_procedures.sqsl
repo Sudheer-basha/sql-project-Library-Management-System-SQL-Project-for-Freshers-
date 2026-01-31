@@ -1,0 +1,72 @@
+USE library_db;
+DELIMITER $$
+
+-- Procedure: loan_book(member_id, book_id, librarian_id, loan_days)
+-- - checks availability
+-- - creates loan row
+-- - decrements available_copies
+CREATE PROCEDURE loan_book(
+  IN p_member_id INT,
+  IN p_book_id INT,
+  IN p_librarian_id INT,
+  IN p_loan_days INT
+)
+BEGIN
+  DECLARE v_available INT;
+  DECLARE v_due DATE;
+
+  SELECT available_copies INTO v_available FROM books WHERE book_id = p_book_id FOR UPDATE;
+
+  IF v_available IS NULL THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Book not found';
+  ELSEIF v_available <= 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No copies available';
+  ELSE
+    SET v_due = DATE_ADD(CURRENT_DATE(), INTERVAL p_loan_days DAY);
+    START TRANSACTION;
+    INSERT INTO loans (book_id, member_id, librarian_id, loan_date, due_date, status)
+      VALUES (p_book_id, p_member_id, p_librarian_id, CURRENT_DATE(), v_due, 'loaned');
+    UPDATE books SET available_copies = available_copies - 1 WHERE book_id = p_book_id;
+    COMMIT;
+  END IF;
+END$$
+
+-- Procedure: return_book(loan_id, return_date)
+-- - sets return_date
+-- - computes fine (example: $1 per day overdue)
+-- - increments available_copies
+CREATE PROCEDURE return_book(
+  IN p_loan_id INT,
+  IN p_return_date DATE
+)
+BEGIN
+  DECLARE v_due DATE;
+  DECLARE v_book_id INT;
+  DECLARE v_days_over INT;
+  DECLARE v_fine DECIMAL(8,2);
+
+  SELECT due_date, book_id INTO v_due, v_book_id FROM loans WHERE loan_id = p_loan_id FOR UPDATE;
+
+  IF v_due IS NULL THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Loan not found';
+  ELSE
+    IF p_return_date > v_due THEN
+      SET v_days_over = DATEDIFF(p_return_date, v_due);
+      SET v_fine = v_days_over * 1.00; -- $1 per day
+    ELSE
+      SET v_fine = 0.00;
+    END IF;
+
+    START TRANSACTION;
+    UPDATE loans
+      SET return_date = p_return_date,
+          fine_amount = v_fine,
+          status = 'returned'
+    WHERE loan_id = p_loan_id;
+
+    UPDATE books SET available_copies = available_copies + 1 WHERE book_id = v_book_id;
+    COMMIT;
+  END IF;
+END$$
+
+DELIMITER ;
